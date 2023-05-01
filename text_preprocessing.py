@@ -57,12 +57,12 @@ class text_preprocessing:
 
 
 
-legal_sw = ['adjourned', 'affidavit', 'allegation', 'appeal', 'appellant', 'application', 'applicant', 'arbitration', 'case', 'cause', 'claim', 'clerk', 'complaint', 'consent', 'contempt', 'contravention', 'conviction', 'costs', 'court', 'cross-examination', 'defence', 'defendant', 'deposition', 'discovery', 'dispute', 'evidence', 'examination', 'fact', 'hearing', 'judge', 'judgment', 'jurisdiction', 'justice', 'law', 'lawsuit', 'legal', 'litigant', 'litigation', 'moot', 'motion', 'objection', 'order', 'parties', 'pleading', 'proceedings', 'ruling', 'sentence', 'settlement', 'solicitor', 'statute', 'subpoena', 'testimony', 'trial', 'verdict', 'witness']
-trial = text_preprocessing('001-223656')
-cleaned = trial.clean()
-print("CLEANED: " + cleaned)
-facts = trial.get_facts(cleaned)
-print("FACTS: " + facts)
-processed = trial.preprocess_text(facts, legal_sw)
-print("PROCESSED: " + processed)
+#legal_sw = ['adjourned', 'affidavit', 'allegation', 'appeal', 'appellant', 'application', 'applicant', 'arbitration', 'case', 'cause', 'claim', 'clerk', 'complaint', 'consent', 'contempt', 'contravention', 'conviction', 'costs', 'court', 'cross-examination', 'defence', 'defendant', 'deposition', 'discovery', 'dispute', 'evidence', 'examination', 'fact', 'hearing', 'judge', 'judgment', 'jurisdiction', 'justice', 'law', 'lawsuit', 'legal', 'litigant', 'litigation', 'moot', 'motion', 'objection', 'order', 'parties', 'pleading', 'proceedings', 'ruling', 'sentence', 'settlement', 'solicitor', 'statute', 'subpoena', 'testimony', 'trial', 'verdict', 'witness']
+#trial = text_preprocessing('001-223656')
+#cleaned = trial.clean()
+#print("CLEANED: " + cleaned)
+#facts = trial.get_facts(cleaned)
+#print("FACTS: " + facts)
+#processed = trial.preprocess_text(facts, legal_sw)
+#print("PROCESSED: " + processed)
 
