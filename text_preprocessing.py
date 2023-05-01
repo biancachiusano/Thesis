@@ -12,6 +12,7 @@ class text_preprocessing:
 
     def clean(self):
         with open('all_ten/' + self.file + '.txt') as f:
+        #with open(self.file) as f:
             lines = f.readlines()
         filter_object = list(filter(lambda a: 'FIRST SECTION' in a, lines))
         if len(filter_object) == 0:
@@ -36,8 +37,21 @@ class text_preprocessing:
         clean = re.sub(r'(?<=[a-z0-9])(?=[A-Z])', ' ', clean)
 
         cut = clean.split()
-        start_index = cut.index('FACTS') + 1
-        end_index = cut.index('LAWALLEGED')
+        #print(cut)
+
+        start_phrase = "FACTS"
+        end_phrase = "LAW"
+        for single in cut:
+            if start_phrase in single:
+                # find the start index
+                start_index = cut.index(single) + len(single)
+            if end_phrase in single:
+                # find the end index
+                end_index = cut.index(single)
+
+        #start_index = cut.index('FACTS') + 1
+        #end_index = cut.index('LAWALLEGED')
+
         the_facts = ' '.join(cut[start_index:end_index])
         return the_facts
 
