@@ -74,6 +74,30 @@ class feature_extraction_tf:
         all_freqs = all_freqs.sort_values('T_Freq', ascending=False).reset_index(drop=True)
         return all_freqs
 
+    def create_groups(self, table):
+        all_words = table.iloc[:, 1].tolist()
+        only_str = []
+        print(all_words)
+        keep_track = []
+        for entry in all_words:
+            if isinstance(entry, str):
+                only_str.append(entry)
+
+        for i in range(101):
+            entry = only_str[i]
+            if entry not in keep_track:
+                new_col = []
+                keep_track.append(entry)
+                print(entry)
+                matches = [word for word in only_str if entry in word]
+                if len(matches) > 0:
+                    new_col.append(entry)
+                    for match in matches:
+                        keep_track.append(match)
+                        new_col.append(match)
+                    table[str(entry)] = pd.Series(new_col, index=table.index[:len(new_col)])
+        return table
+
 
 
 
