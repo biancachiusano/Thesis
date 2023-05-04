@@ -1,4 +1,12 @@
+import nltk
+from nltk.collocations import BigramAssocMeasures, BigramCollocationFinder, TrigramAssocMeasures, TrigramCollocationFinder, QuadgramAssocMeasures, QuadgramCollocationFinder
 import pandas as pd
+
+
+# COLLOCATIONS: https://nlp.stanford.edu/fsnlp/promo/colloc.pdf
+# https://www.nltk.org/api/nltk.collocations.html?highlight=collocations#module-nltk.collocations
+from nltk import word_tokenize
+
 
 class feature_extraction_tf:
     def __init__(self, unique_words_all, count_all, tot_all):
@@ -6,6 +14,36 @@ class feature_extraction_tf:
         self.unique_words_all = unique_words_all
         self.count_all = count_all
         self.tot_all = tot_all
+
+    def collocations(self, text):
+        # collocation: pair or group of words that appear together in a specific language
+        # finding collections requires first calculating the frequencies of words and their appearance in the context of other words
+        # n-grams are contiguous sequences of N items from a given sample of text (bigram: pair of consecutive words in a sentence or document)
+        # each ngram of words may then be scored according to some association measure, in order to determine the relative likelihood of each ngram being a collection
+
+        # CollectionFinder: scores a ngram given appropriate frequency
+
+        # tokenize
+        tokens = word_tokenize(text)
+        print(tokens)
+
+        bigrams = BigramAssocMeasures()
+        trigrams = TrigramAssocMeasures()
+        quadgrams = QuadgramAssocMeasures()
+
+        bigramFinder = BigramCollocationFinder.from_words(tokens)
+        trigramFinder = TrigramCollocationFinder.from_words(tokens)
+        quadgramFinder = QuadgramCollocationFinder.from_words(tokens)
+
+        return bigrams, trigrams, quadgrams, bigramFinder, trigramFinder, quadgramFinder
+
+    def calculate_scores(self, finder, measures):
+        pmi = finder.score_ngrams(measures.pmi)
+
+        # Print the top 10 bigrams with the highest PMI
+        for gram in pmi[:10]:
+            print(gram)
+
 
     def calculate_freq(self, file):
         # For every word in the text
@@ -75,7 +113,7 @@ class feature_extraction_tf:
         return all_freqs
 
     def create_groups(self, table):
-        all_words = table.iloc[:, 1].tolist()
+        all_words = table.iloc[:, 0].tolist()
         only_str = []
         print(all_words)
         keep_track = []

@@ -11,19 +11,22 @@ data = pd.read_csv('violation_or_not.csv')
 violation = data.drop(data[data['Violation'] == 0].index)
 violation = violation.reset_index()
 
+non_violation = data.drop(data[data['Violation'] == 1].index)
+non_violation = non_violation.reset_index()
+
 unique_words_all = []
 count_all = []
 tot_all = 0
 
 # TEXT PREPROCESSING
 legal_sw = ['adjourned', 'affidavit', 'allegation', 'appeal', 'appellant', 'application', 'applicant', 'arbitration', 'case', 'cause', 'claim', 'clerk', 'complaint', 'consent', 'contempt', 'contravention', 'conviction', 'costs', 'court', 'cross-examination', 'defence', 'defendant', 'deposition', 'discovery', 'dispute', 'evidence', 'examination', 'fact', 'hearing', 'judge', 'judgment', 'jurisdiction', 'justice', 'law', 'lawsuit', 'legal', 'litigant', 'litigation', 'moot', 'motion', 'objection', 'order', 'parties', 'pleading', 'proceedings', 'ruling', 'sentence', 'settlement', 'solicitor', 'statute', 'subpoena', 'testimony', 'trial', 'verdict', 'witness']
-trial_violation = ['001-223656', '001-211828']
-trial_violation = ['001-160270']
+other_sw = ['judge', 'council', 'government', 'mr', 'lawyer', 'supreme', 'judicial']
+
 
 frequencies = feature_extraction_tf(unique_words_all, count_all, tot_all)
-
-for filename in violation['Case']:
-#for filename in trial_violation:
+trial = ['001-223656']
+#for filename in non_violation['Case']:
+for filename in trial:
     trial = text_preprocessing(filename)
     cleaned = trial.clean()
     #print("CLEANED: " + cleaned)
@@ -32,23 +35,41 @@ for filename in violation['Case']:
     processed = trial.preprocess_text(facts, legal_sw)
     #print("PROCESSED: " + processed)
 
+    # TODO: don't know whether to pass processed or facts to the collection finder
+    bigrams, trigrams, quadgrams, bigramFinder, trigramFinder, quadgramFinder = frequencies.collocations(processed)
+
+    # Calculate scores
+    print("Top 10 Bigrams with the highest PMI: ")
+    frequencies.calculate_scores(bigramFinder, bigrams)
+    print("Top 10 Trigrams with the highest PMI: ")
+    frequencies.calculate_scores(trigramFinder, trigrams)
+    print("Top 10 Quadgrams with the highest PMI: ")
+    frequencies.calculate_scores(quadgramFinder, quadgrams)
     # TF-IDF
 
-    freq_df, unique_words_all, count_all, tot_all = frequencies.calculate_freq(processed)
-    print(len(unique_words_all))
-    print(len(count_all))
-    print(tot_all)
+    #freq_df, unique_words_all, count_all, tot_all = frequencies.calculate_freq(processed)
+    #print(len(unique_words_all))
+    #print(len(count_all))
+    #print(tot_all)
 
-    #frequencies = feature_extraction_tf(processed)
-    #freq_df = frequencies.calculate_freq()
-    #display(freq_df)
 
-overall_df = frequencies.calculate_all_freq()
-#overall_df.to_csv('Overall_Df.csv', index=True)
-display(overall_df)
+# PREV nn_viol_overall_df = frequencies.calculate_all_freq()
+# PREV nn_viol_overall_df.to_csv('NN_VIOL_Overall_Df.csv', index=True)
+#display(overall_df)
+#overall_df = pd.read_csv('Overall_Df.csv')
+# PREV nn_viol_groups_df = frequencies.create_groups(nn_viol_overall_df)
+# PREV nn_viol_groups_df.to_csv('NN_VIOL_Groups_Df.csv')
 
 # Name entity recognition
 
 # Download the pre-trained NER model
 #nltk.download('maxent_ne_chunker')
 #nltk.download('words')
+
+# TODO: Add more stopwords: Use the alpha words
+# TODO: name entity recognition
+# TODO: Stemming instead of lemmatization
+# TODO: REMOVE DAYS OF THE WEEK, WEEKS, MONTHS, YEARS
+# TODO: Clustering:K-means, Hierarchical clustering, density-based clustering
+# TODO: Introduction and state of the arts report
+# TODO: Word Embedding: WORD2VEC
