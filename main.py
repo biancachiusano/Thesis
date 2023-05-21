@@ -1,43 +1,67 @@
+import os
+
+from clustering import clustering
 from feature_extraction_tf import feature_extraction_tf
 from text_preprocessing import text_preprocessing
 from IPython.display import display
 import nltk
 import pandas as pd
+import non_violation
 
 # DATA
 # 275 Violation
-# 58 non violation
-data = pd.read_csv('violation_or_not.csv')
-violation = data.drop(data[data['Violation'] == 0].index)
-violation = violation.reset_index()
+# 74 Non-Violation Documents
 
-non_violation = data.drop(data[data['Violation'] == 1].index)
-non_violation = non_violation.reset_index()
+final_non_violation = pd.read_csv('final_non_violation.csv')
+final_non_violation = final_non_violation.reset_index()
 
+all_processed_facts = []
 unique_words_all = []
 count_all = []
 tot_all = 0
 
 # TEXT PREPROCESSING
-legal_sw = ['adjourned', 'affidavit', 'allegation', 'appeal', 'appellant', 'application', 'applicant', 'arbitration', 'case', 'cause', 'claim', 'clerk', 'complaint', 'consent', 'contempt', 'contravention', 'conviction', 'costs', 'court', 'cross-examination', 'defence', 'defendant', 'deposition', 'discovery', 'dispute', 'evidence', 'examination', 'fact', 'hearing', 'judge', 'judgment', 'jurisdiction', 'justice', 'law', 'lawsuit', 'legal', 'litigant', 'litigation', 'moot', 'motion', 'objection', 'order', 'parties', 'pleading', 'proceedings', 'ruling', 'sentence', 'settlement', 'solicitor', 'statute', 'subpoena', 'testimony', 'trial', 'verdict', 'witness']
-other_sw = ['judge', 'council', 'government', 'mr', 'lawyer', 'supreme', 'judicial']
-
+legal_sw = ['adjourned', 'affidavit', 'allegation', 'appeal', 'appellant', 'application', 'applicant', "applicant's",
+            'arbitration','case', 'cause', 'claim', 'clerk', 'complaint', 'consent', 'contempt', 'contravention',
+            'conviction','costs', 'court', 'cross-examination', 'defence', 'defendant', 'deposition', 'discovery',
+            'dispute','evidence', 'examination', 'fact', 'hearing', 'judge', 'judgment', 'jurisdiction', 'justice','law',
+            'lawsuit', 'legal', 'litigant', 'litigation', 'moot', 'motion', 'objection', 'order', 'parties', 'pleading',
+            'proceedings', 'ruling', 'sentence', 'settlement', 'solicitor', 'statute', 'subpoena', 'testimony', 'trial',
+            'verdict', 'witness', 'cases', 'courts', "litigant's", "defendant's","judge's", 'council', 'government',
+            'mr', 'lawyer', 'supreme', 'judicial', 'ha', 'wa']
+month_sw = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november'
+            , 'december']
 
 frequencies = feature_extraction_tf(unique_words_all, count_all, tot_all)
-trial = ['001-223656']
-#for filename in non_violation['Case']:
-for filename in trial:
+clusters = clustering()
+practice_files = ['001-210075.txt']
+
+for filename in final_non_violation['Case']:
+#for filename in practice_files:
     trial = text_preprocessing(filename)
     cleaned = trial.clean()
     #print("CLEANED: " + cleaned)
     facts = trial.get_facts(cleaned)
     #print("FACTS: " + facts)
-    processed = trial.preprocess_text(facts, legal_sw)
+    processed = trial.preprocess_text(facts, legal_sw, month_sw)
     #print("PROCESSED: " + processed)
 
+    '''
     # TODO: don't know whether to pass processed or facts to the collection finder
+    bigrams, trigrams, quadgrams, bigramFinder, trigramFinder, quadgramFinder = frequencies.collocations(facts)
+    
+    
+    print("Top 10 Bigrams with the highest PMI: ")
+    frequencies.calculate_scores(bigramFinder, bigrams)
+    print("Top 10 Trigrams with the highest PMI: ")
+    frequencies.calculate_scores(trigramFinder, trigrams)
+    print("Top 10 Quadgrams with the highest PMI: ")
+    frequencies.calculate_scores(quadgramFinder, quadgrams)
+    
+    
+    # AFTER HAVING REMOVED STOP WORDS and DONE LEMMATIZER
     bigrams, trigrams, quadgrams, bigramFinder, trigramFinder, quadgramFinder = frequencies.collocations(processed)
-
+    
     # Calculate scores
     print("Top 10 Bigrams with the highest PMI: ")
     frequencies.calculate_scores(bigramFinder, bigrams)
@@ -45,31 +69,64 @@ for filename in trial:
     frequencies.calculate_scores(trigramFinder, trigrams)
     print("Top 10 Quadgrams with the highest PMI: ")
     frequencies.calculate_scores(quadgramFinder, quadgrams)
+    
+    '''
     # TF-IDF
-
-    #freq_df, unique_words_all, count_all, tot_all = frequencies.calculate_freq(processed)
+    freq_df, unique_words_all, count_all, tot_all = frequencies.calculate_freq(processed)
+    #frequencies.topic_modelling(processed)
+    # DEBUGGING
     #print(len(unique_words_all))
-    #print(len(count_all))
-    #print(tot_all)
+    # print(len(count_all))
+    # print(tot_all)
 
+    #Save all processed facts in a list
+    all_processed_facts.append(processed)
 
-# PREV nn_viol_overall_df = frequencies.calculate_all_freq()
-# PREV nn_viol_overall_df.to_csv('NN_VIOL_Overall_Df.csv', index=True)
-#display(overall_df)
-#overall_df = pd.read_csv('Overall_Df.csv')
-# PREV nn_viol_groups_df = frequencies.create_groups(nn_viol_overall_df)
-# PREV nn_viol_groups_df.to_csv('NN_VIOL_Groups_Df.csv')
+print(len(unique_words_all))
+# CSVs
+#nn_viol_overall_df = frequencies.calculate_all_freq()
+#nn_viol_overall_df.to_csv('non_violation_overall.csv', index=True)
+
+#nn_viol_groups_df = frequencies.create_groups(nn_viol_overall_df)
+#nn_viol_groups_df.to_csv('non_violation_groups.csv')
+
+count_vect_df = clusters.vectorise(all_processed_facts)
+print(count_vect_df)
+print(count_vect_df.shape)
 
 # Name entity recognition
-
-# Download the pre-trained NER model
-#nltk.download('maxent_ne_chunker')
-#nltk.download('words')
 
 # TODO: Add more stopwords: Use the alpha words
 # TODO: name entity recognition
 # TODO: Stemming instead of lemmatization
 # TODO: REMOVE DAYS OF THE WEEK, WEEKS, MONTHS, YEARS
 # TODO: Clustering:K-means, Hierarchical clustering, density-based clustering
-# TODO: Introduction and state of the arts report
 # TODO: Word Embedding: WORD2VEC
+
+# TODO: should I remove words that are not in english?
+
+'''
+
+print(len(files_to_consider))
+print(files_to_consider)
+
+zeros = 0
+non_zeros = 0
+final_non_violation = []
+for entry in files_to_consider:
+    if entry == 0:
+        zeros = zeros + 1
+    else:
+        non_zeros = non_zeros + 1
+        final_non_violation.append(entry)
+print(zeros)
+print(non_zeros)
+print(og_non_violation.shape[0])
+
+non_violation_df = pd.DataFrame(columns=['Case', 'Violation'])
+for nv_file in final_non_violation:
+    new_row = {'Case': nv_file, 'Violation': 0}
+    non_violation_df = pd.concat([non_violation_df, pd.DataFrame([new_row])], ignore_index=True)
+non_violation_df.to_csv('final_non_violation.csv', index=False)
+
+'''
