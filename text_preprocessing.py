@@ -4,14 +4,14 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 import re
+import os
 
 class text_preprocessing:
     def __init__(self, file):
         self.file = file
 
     def clean(self):
-        #print(self.file)
-        with open('non_violation/' + self.file) as f:
+        with open('violation/' + self.file) as f:
             lines = f.readlines()
         filter_object = list(filter(lambda a: 'FIRST SECTION' in a, lines))
         if len(filter_object) == 0:
@@ -63,6 +63,3 @@ class text_preprocessing:
         # Join the tokens back into a string
         processed_text = ' '.join(filtered_tokens)
         return processed_text
-
-
-

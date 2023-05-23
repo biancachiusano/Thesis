@@ -142,15 +142,11 @@ class feature_extraction_tf:
                     table[str(entry)] = pd.Series(new_col, index=table.index[:len(new_col)])
         return table
 
-    def topic_modelling(self, text):
+    def topic_modelling(self, dtm):
         # CountVectorize: number of times a word occurs in the list -> Document Term Matrix
-        # TODO: change ngram_range
-        vectorizer = CountVectorizer(ngram_range=(1,1))
-        # TODO: I need to create documents with only the final text so it can iterate over documents
-        dtm = vectorizer.fit_transform(text)
-        pd.DataFrame(dtm.toarray(), columns=vectorizer.get_feature_names_out())
         lda = LatentDirichletAllocation(n_components=5)
-        lda.fit_transform(dtm)
+        lda_dtf= lda.fit_transform(dtm)
+        print(lda_dtf)
         #sorting = np.argsort(lda.components_)[:,::-1]
         #features = np.array(vectorizer.get_feature_names_out())
         #mglearn.tools.print_topics(topics=range(5), feature_names=features, sorting=sorting, topics_per_chunk=5, n_words=10)
