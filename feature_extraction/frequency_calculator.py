@@ -1,55 +1,11 @@
-from nltk.collocations import BigramAssocMeasures, BigramCollocationFinder, TrigramAssocMeasures, TrigramCollocationFinder, QuadgramAssocMeasures, QuadgramCollocationFinder
 import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from sklearn.decomposition import LatentDirichletAllocation
-from nltk import word_tokenize
-
-# COLLOCATIONS: https://nlp.stanford.edu/fsnlp/promo/colloc.pdf
-# https://www.nltk.org/api/nltk.collocations.html?highlight=collocations#module-nltk.collocations
-# https://towardsdatascience.com/text-clustering-using-k-means-ec19768aae48
-# https://towardsdatascience.com/generating-colocations-n-grams-6dd8bea31d13
-#https://towardsdatascience.com/nlp-for-topic-modeling-summarization-of-legal-documents-8c89393b1534
 
 
-
-class feature_extraction_tf:
+class frequency_calculator:
     def __init__(self, unique_words_all, count_all, tot_all):
-        #self.file = file
         self.unique_words_all = unique_words_all
         self.count_all = count_all
         self.tot_all = tot_all
-
-    def collocations(self, text):
-        # collocation: pair or group of words that appear together in a specific language
-        # finding collections requires first calculating the frequencies of words and their appearance in the context of other words
-        # n-grams are contiguous sequences of N items from a given sample of text (bigram: pair of consecutive words in a sentence or document)
-        # each ngram of words may then be scored according to some association measure, in order to determine the relative likelihood of each ngram being a collection
-
-        # CollectionFinder: scores a ngram given appropriate frequency
-
-        # tokenize
-        tokens = word_tokenize(text)
-        print(tokens)
-
-        bigrams = BigramAssocMeasures()
-        trigrams = TrigramAssocMeasures()
-        quadgrams = QuadgramAssocMeasures()
-
-        bigramFinder = BigramCollocationFinder.from_words(tokens)
-        trigramFinder = TrigramCollocationFinder.from_words(tokens)
-        quadgramFinder = QuadgramCollocationFinder.from_words(tokens)
-
-        return bigrams, trigrams, quadgrams, bigramFinder, trigramFinder, quadgramFinder
-
-    def calculate_scores(self, finder, measures):
-        pmi = finder.score_ngrams(measures.pmi)
-
-        # Print the top 10 bigrams with the highest PMI
-        for gram in pmi[:10]:
-            print(gram)
-
-    #def feature_matrix(self, score):
-
 
     def calculate_freq(self, file):
         # For every word in the text
@@ -57,7 +13,6 @@ class feature_extraction_tf:
 
         unique_words = []
         count_list = []
-        #frequency_list = []
 
         freq_df = pd.DataFrame(columns=['Words', 'Count', 'T_Freq'])
 
@@ -141,16 +96,6 @@ class feature_extraction_tf:
                         new_col.append(match)
                     table[str(entry)] = pd.Series(new_col, index=table.index[:len(new_col)])
         return table
-
-    def topic_modelling(self, dtm):
-        # CountVectorize: number of times a word occurs in the list -> Document Term Matrix
-        lda = LatentDirichletAllocation(n_components=5)
-        lda_dtf= lda.fit_transform(dtm)
-        print(lda_dtf)
-        #sorting = np.argsort(lda.components_)[:,::-1]
-        #features = np.array(vectorizer.get_feature_names_out())
-        #mglearn.tools.print_topics(topics=range(5), feature_names=features, sorting=sorting, topics_per_chunk=5, n_words=10)
-
 
 
 

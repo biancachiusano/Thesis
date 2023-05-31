@@ -1,22 +1,13 @@
-import os
-
-from clustering import clustering
-from feature_extraction_tf import feature_extraction_tf
-from text_preprocessing import text_preprocessing
-from IPython.display import display
-import nltk
+from clustering.clustering import clustering
+from feature_extraction.frequency_calculator import frequency_calculator
+from feature_extraction.text_preprocessing import text_preprocessing
 import pandas as pd
-import non_violation
-import violation
 
-# DATA
-# 275 Violation
-# 74 Non-Violation Documents
 
-final_non_violation = pd.read_csv('final_non_violation.csv')
+final_non_violation = pd.read_csv('non_violation_csv/final_non_violation.csv')
 final_non_violation = final_non_violation.reset_index()
 
-final_violation = pd.read_csv('final_violation.csv')
+final_violation = pd.read_csv('violation_csv/final_violation.csv')
 final_violation = final_violation.reset_index()
 
 
@@ -37,13 +28,11 @@ legal_sw = ['adjourned', 'affidavit', 'allegation', 'appeal', 'appellant', 'appl
 month_sw = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november'
             , 'december']
 
-frequencies = feature_extraction_tf(unique_words_all, count_all, tot_all)
+frequencies = frequency_calculator(unique_words_all, count_all, tot_all)
 clusters = clustering()
-practice_files = ['001-210075.txt']
 
 #for filename in final_non_violation['Case']:
 for filename in final_violation['Case']:
-#for filename in practice_files:
     trial = text_preprocessing(filename)
     cleaned = trial.clean()
     # print("CLEANED: " + cleaned)
@@ -106,11 +95,8 @@ viol_groups_df.to_csv('violation_groups.csv')
 violation_facts_df = clusters.k_means(all_text=all_processed_facts)
 violation_facts_df.to_csv('violation_facts_df_for_cluster.csv')
 
-
-
-# TODO: Name entity recognition
-# TODO: should I remove words that are not in english?
-
+# This piece of code was to filter the documents (downloaded from scraping) that actually contained text and
+# were not empty
 '''
 
 print(len(files_to_consider))
