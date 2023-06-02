@@ -26,6 +26,7 @@ The present thesis aims at continuing to explore what factors lead to case viola
     - Text preprocessing
     - Calculate N-Grams and Frequencies
   - Saving CSVs
+  - Prepares documents for clustering
 #### Feature Extraction:
 - **Frequency_calculator**: Self made TF-IDF to try and get a sense of the unique words and their frequencies. Sklearn TF-IDF is used in the rest of the project.
 - **n_grams and collocations**: n = 1,2,3,4
