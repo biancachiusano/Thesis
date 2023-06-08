@@ -3,6 +3,7 @@ from feature_extraction.frequency_calculator import frequency_calculator
 from feature_extraction.text_preprocessing import text_preprocessing
 import pandas as pd
 
+from feature_extraction.topic_modeling import topic_modeling
 
 final_non_violation = pd.read_csv('non_violation_csv/final_non_violation.csv')
 final_non_violation = final_non_violation.reset_index()
@@ -24,25 +25,33 @@ legal_sw = ['adjourned', 'affidavit', 'allegation', 'appeal', 'appellant', 'appl
             'lawsuit', 'legal', 'litigant', 'litigation', 'moot', 'motion', 'objection', 'order', 'parties', 'pleading',
             'proceedings', 'ruling', 'sentence', 'settlement', 'solicitor', 'statute', 'subpoena', 'testimony', 'trial',
             'verdict', 'witness', 'cases', 'courts', "litigant's", "defendant's","judge's", 'council', 'government',
-            'mr', 'lawyer', 'supreme', 'judicial', 'ha', 'wa']
+            'mr', 'lawyer', 'supreme', 'judicial', 'ha', 'wa', 'european','union','person','right','freedom','expression',
+            'see','paragraph','read','follows','article','human','section','criminal','police','abdullah','öcalan','turkish',
+            'turkey','istanbul','public','prosecutor','russian federation','public','event','administrative','offence',
+            'moscow','proceeding','decision']
+
 month_sw = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november'
             , 'december']
 
 frequencies = frequency_calculator(unique_words_all, count_all, tot_all)
 clusters = clustering()
 
-#for filename in final_non_violation['Case']:
-for filename in final_violation['Case']:
+'''
+for filename in final_non_violation['Case']:
+#for filename in final_violation['Case']:
     trial = text_preprocessing(filename)
     cleaned = trial.clean()
-    # print("CLEANED: " + cleaned)
+    #print("CLEANED: " + cleaned)
     facts = trial.get_facts(cleaned)
-    # print("FACTS: " + facts)
-    processed = trial.preprocess_text(facts, legal_sw, month_sw)
-    # print("PROCESSED: " + processed)
+    #print("FACTS: " + facts)
+    # Facts can be processed differently (For experiments)
+    # s_w = True/False --> Remove/No Removal of stop words
+    # lemma = True/False --> Apply/No Lemmatization
+    processed = trial.preprocess_text(facts, legal_sw, month_sw, s_w=True, lemma=True)
+    #print("PROCESSED: " + processed)
 
 
-    '''
+    
     # TODO: don't know whether to pass processed or facts to the collection finder
     bigrams, trigrams, quadgrams, bigramFinder, trigramFinder, quadgramFinder = frequencies.collocations(facts)
     
@@ -66,7 +75,7 @@ for filename in final_violation['Case']:
     print("Top 10 Quadgrams with the highest PMI: ")
     frequencies.calculate_scores(quadgramFinder, quadgrams)
     
-    '''
+    
     # TF-IDF
     freq_df, unique_words_all, count_all, tot_all = frequencies.calculate_freq(processed)
     # frequencies.topic_modelling(processed)
@@ -77,26 +86,35 @@ for filename in final_violation['Case']:
 
     # Save all processed facts in a list
     all_processed_facts.append(processed)
+'''
+# CSVs for experiments
+#viol_overall_df = frequencies.calculate_all_freq()
+#viol_overall_df.to_csv('violation_overall.csv', index=True)
 
-# CSVs
-viol_overall_df = frequencies.calculate_all_freq()
-viol_overall_df.to_csv('violation_overall.csv', index=True)
+#viol_groups_df = frequencies.create_groups(viol_overall_df)
+#viol_groups_df.to_csv('violation_groups.csv')
 
-viol_groups_df = frequencies.create_groups(viol_overall_df)
-viol_groups_df.to_csv('violation_groups.csv')
+# Preparing Facts for Topic Modeling and Document Clustering (For experiments)
+#violation_facts = clusters.k_means(all_text=all_processed_facts)
+#violation_facts.to_csv('violation_csv/violation_facts_processed.csv')
+#violation_facts.to_csv('violation_csv/violation_facts_lemma.csv')
+#violation_facts.to_csv('violation_csv/violation_facts_sw.csv')
+#violation_facts.to_csv('violation_csv/violation_facts_none.csv')
 
-# VECTORISE
-#count_vect_df = clusters.vectorise(all_processed_facts)
-#print(count_vect_df)
-#print(count_vect_df.shape)
-#frequencies.topic_modelling(count_vect_df)
+#non_violation_facts = clusters.k_means(all_text=all_processed_facts)
+#non_violation_facts.to_csv('non_violation_csv/non_violation_facts_processed.csv')
+#non_violation_facts.to_csv('non_violation_csv/non_violation_facts_lemma.csv')
+#non_violation_facts.to_csv('non_violation_csv/non_violation_facts_sw.csv')
+#non_violation_facts.to_csv('non_violation_csv/non_violation_facts_none.csv')
 
-# CLUSTERING K-MEANS BASED ON TF_IDF
-violation_facts_df = clusters.k_means(all_text=all_processed_facts)
-violation_facts_df.to_csv('violation_facts_df_for_cluster.csv')
+# Topic Modelling
+violation_tm = pd.read_csv('violation_csv/violation_facts_processed.csv')
+facts = violation_tm['Facts'].tolist()
+tm = topic_modeling(facts)
+facts_words = tm.organise()
+print(len(facts_words))
 
-# This piece of code was to filter the documents (downloaded from scraping) that actually contained text and
-# were not empty
+# This piece of code was to filter the documents (downloaded from scraping) that actually contained text and were not empty
 '''
 
 print(len(files_to_consider))

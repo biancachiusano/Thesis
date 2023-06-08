@@ -2,6 +2,9 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 import re
+import gensim
+from gensim.utils import simple_preprocess
+from gensim.models import CoherenceModel
 
 
 class text_preprocessing:
@@ -9,7 +12,7 @@ class text_preprocessing:
         self.file = file
 
     def clean(self):
-        with open('violation/' + self.file) as f:
+        with open('non_violation/' + self.file) as f:
             lines = f.readlines()
         filter_object = list(filter(lambda a: 'FIRST SECTION' in a, lines))
         if len(filter_object) == 0:
@@ -46,18 +49,33 @@ class text_preprocessing:
 
         the_facts = ' '.join(cut[start_index:end_index])
         return the_facts
-
-    def preprocess_text(self, facts, legal_sw, month_sw):
+    # NLTK
+    def preprocess_text(self, facts, legal_sw, month_sw, s_w, lemma):
 
         # Tokenize the text
         tokens = word_tokenize(facts.lower())
         # Lemmatize the tokens
         lemmatizer = WordNetLemmatizer()
-        lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
         # Remove stop words
         all_stopwords = set(stopwords.words('english') + legal_sw + month_sw)
-        # Also removing one-letter words
-        filtered_tokens = [token for token in lemmatized_tokens if token not in all_stopwords and len(token) > 1]
+
+        # Different types of preprocessing (for experiments)
+        if lemma and s_w:
+            print('Both Lemma and SW')
+            lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
+            # Also removing one-letter and two-letter words
+            filtered_tokens = [token for token in lemmatized_tokens if token not in all_stopwords and len(token) > 2]
+        if lemma and not s_w:
+            print('Only Lemma')
+            lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
+            filtered_tokens = lemmatized_tokens
+        if s_w and not lemma:
+            print('Only SW')
+            filtered_tokens = [token for token in tokens if token not in all_stopwords and len(token) > 2]
+        if not s_w and not lemma:
+            print('No pre-processing')
+            filtered_tokens = tokens
         # Join the tokens back into a string
         processed_text = ' '.join(filtered_tokens)
         return processed_text
+
