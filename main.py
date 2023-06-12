@@ -36,9 +36,11 @@ month_sw = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'aug
 frequencies = frequency_calculator(unique_words_all, count_all, tot_all)
 clusters = clustering()
 
-'''
-for filename in final_non_violation['Case']:
-#for filename in final_violation['Case']:
+#trial = ["001-211777.txt", "001-219042.txt", "001-201896"]
+#trial = ["001-201896.txt"]
+#for filename in final_non_violation['Case']:
+for filename in final_violation['Case']:
+#for filename in trial:
     trial = text_preprocessing(filename)
     cleaned = trial.clean()
     #print("CLEANED: " + cleaned)
@@ -51,7 +53,7 @@ for filename in final_non_violation['Case']:
     #print("PROCESSED: " + processed)
 
 
-    
+    '''
     # TODO: don't know whether to pass processed or facts to the collection finder
     bigrams, trigrams, quadgrams, bigramFinder, trigramFinder, quadgramFinder = frequencies.collocations(facts)
     
@@ -74,7 +76,7 @@ for filename in final_non_violation['Case']:
     frequencies.calculate_scores(trigramFinder, trigrams)
     print("Top 10 Quadgrams with the highest PMI: ")
     frequencies.calculate_scores(quadgramFinder, quadgrams)
-    
+    '''
     
     # TF-IDF
     freq_df, unique_words_all, count_all, tot_all = frequencies.calculate_freq(processed)
@@ -86,7 +88,7 @@ for filename in final_non_violation['Case']:
 
     # Save all processed facts in a list
     all_processed_facts.append(processed)
-'''
+
 # CSVs for experiments
 #viol_overall_df = frequencies.calculate_all_freq()
 #viol_overall_df.to_csv('violation_overall.csv', index=True)
@@ -95,8 +97,8 @@ for filename in final_non_violation['Case']:
 #viol_groups_df.to_csv('violation_groups.csv')
 
 # Preparing Facts for Topic Modeling and Document Clustering (For experiments)
-#violation_facts = clusters.k_means(all_text=all_processed_facts)
-#violation_facts.to_csv('violation_csv/violation_facts_processed.csv')
+violation_facts = clusters.k_means(all_text=all_processed_facts)
+violation_facts.to_csv('violation_csv/violation_facts_processed.csv')
 #violation_facts.to_csv('violation_csv/violation_facts_lemma.csv')
 #violation_facts.to_csv('violation_csv/violation_facts_sw.csv')
 #violation_facts.to_csv('violation_csv/violation_facts_none.csv')
@@ -108,11 +110,16 @@ for filename in final_non_violation['Case']:
 #non_violation_facts.to_csv('non_violation_csv/non_violation_facts_none.csv')
 
 # Topic Modelling
-violation_tm = pd.read_csv('violation_csv/violation_facts_processed.csv')
-facts = violation_tm['Facts'].tolist()
-tm = topic_modeling(facts)
-facts_words = tm.organise()
-print(len(facts_words))
+#violation_tm = pd.read_csv('violation_csv/violation_facts_processed.csv')
+#facts = violation_tm['Facts'].tolist()
+#tm = topic_modeling(facts)
+#facts_words = tm.organise()
+#print(len(facts_words))
+
+#data_bigram, bigram_phases, bigram = tm.bi_grams(facts_words)
+#data_bigram_trigram = tm.tri_grams(facts_words, data_bigram, bigram_phases, bigram)
+#corpus, id2word = tm.tf_idf(data_bigram_trigram)
+#tm.perform_lda(corpus, id2word)
 
 # This piece of code was to filter the documents (downloaded from scraping) that actually contained text and were not empty
 '''

@@ -12,7 +12,8 @@ class text_preprocessing:
         self.file = file
 
     def clean(self):
-        with open('non_violation/' + self.file) as f:
+        print(self.file)
+        with open('violation/' + self.file) as f:
             lines = f.readlines()
         filter_object = list(filter(lambda a: 'FIRST SECTION' in a, lines))
         if len(filter_object) == 0:
@@ -37,15 +38,19 @@ class text_preprocessing:
 
         cut = clean.split()
 
-        start_phrase = "FACTS"
-        end_phrase = "LAW"
+        start_phrase = {"FACTS", "CIRCUMSTANCES OF THE"}
+        end_phrase = {"RELEVANT DOMESTIC LAW", "RELEVANT LEGAL FRAMEWORK", "THE LAW"}
+
+        start_index = None
+        end_index = None
         for single in cut:
-            if start_phrase in single:
+            if any(phrase in single for phrase in start_phrase):
                 # find the start index
                 start_index = cut.index(single) + len(single)
-            if end_phrase in single:
+            if any(phrase in single for phrase in end_phrase):
                 # find the end index
                 end_index = cut.index(single)
+                break
 
         the_facts = ' '.join(cut[start_index:end_index])
         return the_facts
