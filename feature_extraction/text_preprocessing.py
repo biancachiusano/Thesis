@@ -12,8 +12,8 @@ class text_preprocessing:
         self.file = file
 
     def clean(self):
-        print(self.file)
-        with open('violation/' + self.file) as f:
+        #print(self.file)
+        with open('non_violation/' + self.file) as f:
             lines = f.readlines()
         filter_object = list(filter(lambda a: 'FIRST SECTION' in a, lines))
         if len(filter_object) == 0:

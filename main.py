@@ -38,8 +38,8 @@ clusters = clustering()
 
 #trial = ["001-211777.txt", "001-219042.txt", "001-201896"]
 #trial = ["001-201896.txt"]
-#for filename in final_non_violation['Case']:
-for filename in final_violation['Case']:
+for filename in final_non_violation['Case']:
+#for filename in final_violation['Case']:
 #for filename in trial:
     trial = text_preprocessing(filename)
     cleaned = trial.clean()
@@ -49,7 +49,7 @@ for filename in final_violation['Case']:
     # Facts can be processed differently (For experiments)
     # s_w = True/False --> Remove/No Removal of stop words
     # lemma = True/False --> Apply/No Lemmatization
-    processed = trial.preprocess_text(facts, legal_sw, month_sw, s_w=True, lemma=True)
+    processed = trial.preprocess_text(facts, legal_sw, month_sw, s_w=False, lemma=False)
     #print("PROCESSED: " + processed)
 
 
@@ -97,17 +97,17 @@ for filename in final_violation['Case']:
 #viol_groups_df.to_csv('violation_groups.csv')
 
 # Preparing Facts for Topic Modeling and Document Clustering (For experiments)
-violation_facts = clusters.k_means(all_text=all_processed_facts)
-violation_facts.to_csv('violation_csv/violation_facts_processed.csv')
+#violation_facts = clusters.k_means(all_text=all_processed_facts)
+#violation_facts.to_csv('violation_csv/violation_facts_processed.csv')
 #violation_facts.to_csv('violation_csv/violation_facts_lemma.csv')
 #violation_facts.to_csv('violation_csv/violation_facts_sw.csv')
 #violation_facts.to_csv('violation_csv/violation_facts_none.csv')
 
-#non_violation_facts = clusters.k_means(all_text=all_processed_facts)
+non_violation_facts = clusters.k_means(all_text=all_processed_facts)
 #non_violation_facts.to_csv('non_violation_csv/non_violation_facts_processed.csv')
 #non_violation_facts.to_csv('non_violation_csv/non_violation_facts_lemma.csv')
 #non_violation_facts.to_csv('non_violation_csv/non_violation_facts_sw.csv')
-#non_violation_facts.to_csv('non_violation_csv/non_violation_facts_none.csv')
+non_violation_facts.to_csv('non_violation_csv/non_violation_facts_none.csv')
 
 # Topic Modelling
 #violation_tm = pd.read_csv('violation_csv/violation_facts_processed.csv')
