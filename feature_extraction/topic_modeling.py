@@ -1,11 +1,8 @@
 import gensim
-from gensim.utils import simple_preprocess
 from gensim.models import CoherenceModel
-import gensim.corpora as corpora
-from gensim.models import TfidfModel
-import pyLDAvis
-import pyLDAvis.gensim
-
+import pandas as pd
+import nltk
+from nltk import word_tokenize
 
 class topic_modeling:
     def __init__(self, facts):
@@ -18,45 +15,68 @@ class topic_modeling:
             facts_words.append(split_fact)
         return facts_words
 
-    def bi_grams(self, data):
-        bigram_phrases = gensim.models.Phrases(data, min_count=5, threshold=100)
-        bigram = gensim.models.phrases.Phraser(bigram_phrases)
+    def remove_lang_words(self,facts_words, english_words):
+        # Filtering out non-english words and three letter words
+        filtered = [word for word in facts_words if word in english_words and len(word)>3]
+        return filtered
 
-        return (bigram[doc] for doc in data), bigram_phrases, bigram
+    def find_bigrams(self, data):
 
-    def tri_grams(self, data, data_bigram, bigram_phrases, bigram):
-        trigram_phrases = gensim.models.Phrases(bigram_phrases[data], threshold=100)
-        trigram = gensim.models.phrases.Phraser(trigram_phrases)
+        bigram_list = []
 
-        return (trigram[bigram[doc]] for doc in data_bigram)
+        for facts in data:
+            text = ' '.join(facts)
+            tokens = word_tokenize(text)
+            bigrams = list(nltk.bigrams(tokens))
+            bigram_list.append(bigrams)
 
-    def tf_idf(self, data_bigrams_trigrams):
+        combined_tuples = []
+        final_bigram_list = []
+        for bigrams in bigram_list:
+            combined_tuples = []
+            for tuples in bigrams:
+                combined = '_'.join(tuples)
+                combined_tuples.append(combined)
+            final_bigram_list.append(combined_tuples)
 
-        id2word = corpora.Dictionary(data_bigrams_trigrams)
+        return final_bigram_list
 
-        texts = data_bigrams_trigrams
+    def view_frequencies(self, id2word, texts, corpus, tfidf):
+        word_frequency = []
+        for doc in corpus:
+            # Convert the document to TF-IDF representation
+            tfidf_vector = tfidf[doc]
 
-        corpus = [id2word.doc2bow(text) for text in texts]
-        # print (corpus[0][0:20])
+            #Iterate over the TF-IDF values for each word in the document
+            for word_id, tfidf_score in tfidf_vector:
+                # Get the word corresponding to the word ID
+                word = id2word[word_id]
+                word_frequency.append([word,tfidf_score])
 
-        tfidf = TfidfModel(corpus, id2word=id2word)
+        df_freq = pd.DataFrame(word_frequency, columns = ['Word', 'Frequency'])
+        df_sorted = df_freq.sort_values('Frequency', ascending=False)
+
+        return df_sorted
+
+    def filter_tf_idf(self, id2word, texts, corpus, tfidf):
 
         low_value = 0.03
+        high_value = 0.6
         words = []
         words_missing_in_tfidf = []
         for i in range(0, len(corpus)):
             bow = corpus[i]
-            low_value_words = []  # reinitialize to be safe. You can skip this.
             tfidf_ids = [id for id, value in tfidf[bow]]
             bow_ids = [id for id, value in bow]
-            low_value_words = [id for id, value in tfidf[bow] if value < low_value]
-            drops = low_value_words + words_missing_in_tfidf
+            value_words = [id for id, value in tfidf[bow] if value < low_value or value > high_value]
+            drops = value_words + words_missing_in_tfidf
+
             for item in drops:
                 words.append(id2word[item])
             words_missing_in_tfidf = [id for id in bow_ids if
                                       id not in tfidf_ids]  # The words with tf-idf socre 0 will be missing
 
-            new_bow = [b for b in bow if b[0] not in low_value_words and b[0] not in words_missing_in_tfidf]
+            new_bow = [b for b in bow if b[0] not in value_words and b[0] not in words_missing_in_tfidf]
             corpus[i] = new_bow
 
         return corpus, id2word
@@ -67,25 +87,25 @@ class topic_modeling:
                                                     num_topics=10,
                                                     random_state=100,
                                                     update_every=1,
-                                                    chunksize=100,
+                                                    chunksize=50,
                                                     passes=10,
                                                     alpha="auto")
 
-        vis = pyLDAvis.gensim.prepare(lda_model, corpus, id2word, mds="mmds", R=30)
-        sns.set_style("white")
-        pyLDAvis.display(vis)
+        return lda_model
 
+    def show_results(self, lda_model):
 
+        topics_df = pd.DataFrame(columns=['Topic', 'Top 5 Terms', 'Prob'])
+        results = lda_model.show_topics(num_topics=10, num_words=5, log=False, formatted=False)
 
+        for i in range(0, 10):
+            terms_five = []
+            prob_five = []
+            for j in range(0, 5):
+                terms_five.append(results[i][1][j][0])
+                prob_five.append(results[i][1][j][1])
 
-'''
-violation_facts = pd.read_csv('violation_csv/violation_facts_df_for_cluster.csv')
-facts = violation_facts['Facts'].tolist()
-tm = topic_modeling(facts)
-facts_words = tm.organise()
-print(len(facts_words))
-print(facts_words[0])
-lemmatized_texts = tm.lemmatization(facts_words[0])
-print(lemmatized_texts)
+            new_row = pd.DataFrame({'Topic': [i], 'Top 5 Terms': [terms_five], 'Prob': [prob_five]})
+            topics_df = pd.concat([topics_df, new_row], ignore_index=True)
 
-'''
+        return topics_df

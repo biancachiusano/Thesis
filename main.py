@@ -2,6 +2,9 @@ from clustering.clustering import clustering
 from feature_extraction.frequency_calculator import frequency_calculator
 from feature_extraction.text_preprocessing import text_preprocessing
 import pandas as pd
+import gensim.corpora as corpora
+from gensim.models import TfidfModel
+import nltk
 
 from feature_extraction.topic_modeling import topic_modeling
 
@@ -36,11 +39,9 @@ month_sw = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'aug
 frequencies = frequency_calculator(unique_words_all, count_all, tot_all)
 clusters = clustering()
 
-#trial = ["001-211777.txt", "001-219042.txt", "001-201896"]
-#trial = ["001-201896.txt"]
+'''
 for filename in final_non_violation['Case']:
 #for filename in final_violation['Case']:
-#for filename in trial:
     trial = text_preprocessing(filename)
     cleaned = trial.clean()
     #print("CLEANED: " + cleaned)
@@ -49,38 +50,11 @@ for filename in final_non_violation['Case']:
     # Facts can be processed differently (For experiments)
     # s_w = True/False --> Remove/No Removal of stop words
     # lemma = True/False --> Apply/No Lemmatization
-    processed = trial.preprocess_text(facts, legal_sw, month_sw, s_w=False, lemma=False)
+    processed = trial.preprocess_text(facts, legal_sw, month_sw, s_w=True, lemma=True)
     #print("PROCESSED: " + processed)
 
-
-    '''
-    # TODO: don't know whether to pass processed or facts to the collection finder
-    bigrams, trigrams, quadgrams, bigramFinder, trigramFinder, quadgramFinder = frequencies.collocations(facts)
-    
-    
-    print("Top 10 Bigrams with the highest PMI: ")
-    frequencies.calculate_scores(bigramFinder, bigrams)
-    print("Top 10 Trigrams with the highest PMI: ")
-    frequencies.calculate_scores(trigramFinder, trigrams)
-    print("Top 10 Quadgrams with the highest PMI: ")
-    frequencies.calculate_scores(quadgramFinder, quadgrams)
-    
-    
-    # AFTER HAVING REMOVED STOP WORDS and DONE LEMMATIZER
-    bigrams, trigrams, quadgrams, bigramFinder, trigramFinder, quadgramFinder = frequencies.collocations(processed)
-    
-    # Calculate scores
-    print("Top 10 Bigrams with the highest PMI: ")
-    frequencies.calculate_scores(bigramFinder, bigrams)
-    print("Top 10 Trigrams with the highest PMI: ")
-    frequencies.calculate_scores(trigramFinder, trigrams)
-    print("Top 10 Quadgrams with the highest PMI: ")
-    frequencies.calculate_scores(quadgramFinder, quadgrams)
-    '''
-    
     # TF-IDF
     freq_df, unique_words_all, count_all, tot_all = frequencies.calculate_freq(processed)
-    # frequencies.topic_modelling(processed)
     # DEBUGGING
     # print(len(unique_words_all))
     # print(len(count_all))
@@ -103,23 +77,40 @@ for filename in final_non_violation['Case']:
 #violation_facts.to_csv('violation_csv/violation_facts_sw.csv')
 #violation_facts.to_csv('violation_csv/violation_facts_none.csv')
 
-non_violation_facts = clusters.k_means(all_text=all_processed_facts)
+#non_violation_facts = clusters.k_means(all_text=all_processed_facts)
 #non_violation_facts.to_csv('non_violation_csv/non_violation_facts_processed.csv')
 #non_violation_facts.to_csv('non_violation_csv/non_violation_facts_lemma.csv')
 #non_violation_facts.to_csv('non_violation_csv/non_violation_facts_sw.csv')
-non_violation_facts.to_csv('non_violation_csv/non_violation_facts_none.csv')
-
+#non_violation_facts.to_csv('non_violation_csv/non_violation_facts_none.csv')
+'''
 # Topic Modelling
-#violation_tm = pd.read_csv('violation_csv/violation_facts_processed.csv')
-#facts = violation_tm['Facts'].tolist()
-#tm = topic_modeling(facts)
-#facts_words = tm.organise()
-#print(len(facts_words))
+bigram_exp = True
 
-#data_bigram, bigram_phases, bigram = tm.bi_grams(facts_words)
-#data_bigram_trigram = tm.tri_grams(facts_words, data_bigram, bigram_phases, bigram)
-#corpus, id2word = tm.tf_idf(data_bigram_trigram)
-#tm.perform_lda(corpus, id2word)
+violation_tm = pd.read_csv('non_violation_csv/non_violation_facts_processed.csv')
+facts = violation_tm['Facts'].tolist()
+tm = topic_modeling(facts)
+facts_words = tm.organise()
+
+final_data = []
+english_words = set(nltk.corpus.words.words())
+for i in range(0, len(facts_words)):
+    facts_words_filtered = tm.remove_lang_words(facts_words[i], english_words)
+    final_data.append(facts_words_filtered)
+
+if bigram_exp:
+    final_data = tm.find_bigrams(final_data)
+
+id2word = corpora.Dictionary(final_data)
+texts = final_data
+corpus = [id2word.doc2bow(text) for text in texts]
+tfidf = TfidfModel(corpus, id2word=id2word)
+
+corpus_filter, id2word_filter = tm.filter_tf_idf(id2word, texts, corpus, tfidf)
+lda_model = tm.perform_lda(corpus_filter, id2word_filter)
+topics_df = tm.show_results(lda_model)
+print(topics_df)
+
+
 
 # This piece of code was to filter the documents (downloaded from scraping) that actually contained text and were not empty
 '''
