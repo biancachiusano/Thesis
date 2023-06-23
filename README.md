@@ -2,9 +2,9 @@
 ### Bianca Caissotti di Chiusano (i6245461)
 #### NLP-based Feature Extraction and Document Clustering of ECHR Case Violations Regarding Article 10: Freedom of Expression
 ## Running the code:
-To do run the whole project and observe how a case law document (.txt) is preprocessed ect. run main.py
+To run the whole project and observe how a case law document (.txt) is preprocessed ect. run main.py
 
-To perform clustering only: run clustering.py (make sure you provide a valid DataFrame containing facts from all the violation/nonviolation documents that you want to cluster)
+To perform clustering or LDA topic modelling: you can run the jupyter notebooks in the models directory (make sure to use the differently processed facts in the csvs **non_violation_csv** and **violation_csv**) 
 
 ## About this thesis:
 Title: "NLP-based Feature Extraction and Document Clustering of ECHR Case Violations Regarding Article 10: Freedom of Expression"
@@ -17,19 +17,18 @@ The present thesis aims at continuing to explore what factors lead to case viola
 - **non_violation**: folder containing all cases on non-violation of Article 10 (downloaded but not all are valid to use)
 - **violation**: folder containing all cases on violation of Article 10 (downloaded but not all are valid to use)
 - **non_violation_csv**: Contains:
-  - DF - one row per document - contains all processed facts of that document - ready for clustering
   - csv with all the non_violation docs that can be used
-  - csv_groups and csv_overall are csvs that were created to check the frequencies of words and self-made groups of similar words (just a start)
+  - csvs with facts processed in different preprocessing techniques (ready for clustering and LDA topic modelling):
+    - non_violation_facts_processed (fully processed)
+    - non_violation_facts_lemma (only lemmatization)
+    - non_violation_facts_sw (only stop word removal)
+    - non_violation_facts_non (no preprocessing)
 - **violation_csv**: same as "non_violation_csv" but for violation cases
 #### Main: 
   - For every file in DataFrame (Violation or Non-Violation):
     - Text preprocessing
-    - Calculate N-Grams and Frequencies
-  - Saving CSVs
-  - Prepares documents for clustering
+  - Saving CSVs (Prepares documents for clustering and topic modelling)
 #### Feature Extraction:
-- **Frequency_calculator**: Self made TF-IDF to try and get a sense of the unique words and their frequencies. Sklearn TF-IDF is used in the rest of the project.
-- **n_grams and collocations**: n = 1,2,3,4
 - **Text Preprocessing**:
   - Clean File
   - Extract Facts
@@ -38,12 +37,13 @@ The present thesis aims at continuing to explore what factors lead to case viola
     - Normalise
     - Lemmatize
     - English/Legal Stop word removal
-  - **Topic Modelling** : TODO
-#### Clustering:
-- **Word-embedding Techniques**:
-  - TF-IDF
-  - CountVectorizer
-- **K-means clustering**
+- Two files that didn't end up in the final submission but could be used in the future for better control of tf-idf and n_grams compared to using the pre-made models from SKLearn and Gensim:
+  - **Frequency_calculator**: Self made TF-IDF to try and get a sense of the unique words and their frequencies. Sklearn TF-IDF is used in the rest of the project.
+  - **n_grams and collocations**: n = 1,2,3,4
+#### Models:
+  These are in the format of jupyter/google collab notebooks as it is easier to run and visualise experiments
+- **K-means document clustering**
+- **LDA topic modelling**
 
 
 

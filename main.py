@@ -1,12 +1,7 @@
-from clustering.clustering import clustering
 from feature_extraction.frequency_calculator import frequency_calculator
 from feature_extraction.text_preprocessing import text_preprocessing
 import pandas as pd
-import gensim.corpora as corpora
-from gensim.models import TfidfModel
 import nltk
-
-from feature_extraction.topic_modeling import topic_modeling
 
 final_non_violation = pd.read_csv('non_violation_csv/final_non_violation.csv')
 final_non_violation = final_non_violation.reset_index()
@@ -20,7 +15,7 @@ unique_words_all = []
 count_all = []
 tot_all = 0
 
-# TEXT PREPROCESSING
+# TEXT PREPROCESSING (Legal Stop words)
 legal_sw = ['adjourned', 'affidavit', 'allegation', 'appeal', 'appellant', 'application', 'applicant', "applicant's",
             'arbitration','case', 'cause', 'claim', 'clerk', 'complaint', 'consent', 'contempt', 'contravention',
             'conviction','costs', 'court', 'cross-examination', 'defence', 'defendant', 'deposition', 'discovery',
@@ -37,9 +32,7 @@ month_sw = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'aug
             , 'december']
 
 frequencies = frequency_calculator(unique_words_all, count_all, tot_all)
-clusters = clustering()
 
-'''
 for filename in final_non_violation['Case']:
 #for filename in final_violation['Case']:
     trial = text_preprocessing(filename)
@@ -63,6 +56,13 @@ for filename in final_non_violation['Case']:
     # Save all processed facts in a list
     all_processed_facts.append(processed)
 
+
+def prepare(all_text):
+    facts_df = pd.DataFrame(columns=['Facts', 'Cluster', 'x0', 'x1'])
+    facts_df['Facts'] = all_text
+
+    return facts_df
+
 # CSVs for experiments
 #viol_overall_df = frequencies.calculate_all_freq()
 #viol_overall_df.to_csv('violation_overall.csv', index=True)
@@ -71,44 +71,17 @@ for filename in final_non_violation['Case']:
 #viol_groups_df.to_csv('violation_groups.csv')
 
 # Preparing Facts for Topic Modeling and Document Clustering (For experiments)
-#violation_facts = clusters.k_means(all_text=all_processed_facts)
+#violation_facts = prepare(all_text=all_processed_facts)
 #violation_facts.to_csv('violation_csv/violation_facts_processed.csv')
 #violation_facts.to_csv('violation_csv/violation_facts_lemma.csv')
 #violation_facts.to_csv('violation_csv/violation_facts_sw.csv')
 #violation_facts.to_csv('violation_csv/violation_facts_none.csv')
 
-#non_violation_facts = clusters.k_means(all_text=all_processed_facts)
+#non_violation_facts = prepare(all_text=all_processed_facts)
 #non_violation_facts.to_csv('non_violation_csv/non_violation_facts_processed.csv')
 #non_violation_facts.to_csv('non_violation_csv/non_violation_facts_lemma.csv')
 #non_violation_facts.to_csv('non_violation_csv/non_violation_facts_sw.csv')
 #non_violation_facts.to_csv('non_violation_csv/non_violation_facts_none.csv')
-'''
-# Topic Modelling
-bigram_exp = True
-
-violation_tm = pd.read_csv('non_violation_csv/non_violation_facts_processed.csv')
-facts = violation_tm['Facts'].tolist()
-tm = topic_modeling(facts)
-facts_words = tm.organise()
-
-final_data = []
-english_words = set(nltk.corpus.words.words())
-for i in range(0, len(facts_words)):
-    facts_words_filtered = tm.remove_lang_words(facts_words[i], english_words)
-    final_data.append(facts_words_filtered)
-
-if bigram_exp:
-    final_data = tm.find_bigrams(final_data)
-
-id2word = corpora.Dictionary(final_data)
-texts = final_data
-corpus = [id2word.doc2bow(text) for text in texts]
-tfidf = TfidfModel(corpus, id2word=id2word)
-
-corpus_filter, id2word_filter = tm.filter_tf_idf(id2word, texts, corpus, tfidf)
-lda_model = tm.perform_lda(corpus_filter, id2word_filter)
-topics_df = tm.show_results(lda_model)
-print(topics_df)
 
 
 

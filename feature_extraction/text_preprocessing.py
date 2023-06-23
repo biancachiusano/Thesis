@@ -2,15 +2,13 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 import re
-import gensim
-from gensim.utils import simple_preprocess
-from gensim.models import CoherenceModel
 
 
 class text_preprocessing:
     def __init__(self, file):
         self.file = file
 
+    # This function is to check whether the downloaded document has text or if there was a problem in the scraping
     def clean(self):
         #print(self.file)
         with open('non_violation/' + self.file) as f:
@@ -38,6 +36,7 @@ class text_preprocessing:
 
         cut = clean.split()
 
+        # Filtering out the facts
         start_phrase = {"FACTS", "CIRCUMSTANCES OF THE"}
         end_phrase = {"RELEVANT DOMESTIC LAW", "RELEVANT LEGAL FRAMEWORK", "THE LAW"}
 
